@@ -1,0 +1,71 @@
+name: Sync shared files from the Binder Book
+
+# The AMS and the Binder Book share the files in shared-files.txt. If they
+# drift, the two apps write the same Supabase row by different rules —
+# which is exactly how a book of business gets overwritten. This watches
+# for that and opens a pull request rather than letting it go unnoticed.
+#
+# Runs on a schedule, and on demand from the Actions tab.
+
+on:
+  schedule:
+    - cron: '41 7 * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'shared-files.txt'
+      - 'scripts/sync-shared.sh'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the AMS
+        uses: actions/checkout@v4
+
+      - name: Check out the Binder Book
+        uses: actions/checkout@v4
+        with:
+          repository: amanzor/uib-binderbook
+          path: .binderbook
+          ref: master
+
+      - name: Copy the shared files
+        id: copy
+        run: |
+          chmod +x scripts/sync-shared.sh
+          scripts/sync-shared.sh .binderbook
+          rm -rf .binderbook
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "files<<EOF" >> "$GITHUB_OUTPUT"
+            git status --porcelain | sed 's/^ *M */  - /' >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open a pull request
+        if: steps.copy.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: sync/shared-files
+          title: 'Sync shared files from the Binder Book'
+          commit-message: 'Sync shared files from the Binder Book'
+          delete-branch: true
+          body: |
+            The shared files below changed in
+            [amanzor/uib-binderbook](https://github.com/amanzor/uib-binderbook)
+            and have been copied across.
+
+            ${{ steps.copy.outputs.files }}
+
+            These files are edited in the Binder Book repo and copied here, so
+            this pull request is the expected way for them to change. Merging
+            keeps the two apps writing the shared Supabase data by identical
+            rules; leaving them apart is what lets one app overwrite the
+            other's work.
