@@ -1,0 +1,15 @@
+# The AMS's own files, which currently live in BOTH repositories because
+# the Binder Book still serves a copy of the AMS at /ams. Until that copy
+# is removed, these must be kept in step, so they are copied across by
+# scripts/sync-shared.sh exactly like the shared library files.
+#
+# "source -> destination" renames on the way across; a bare name keeps it.
+#
+# Once the Binder Book drops its /ams copy, this file goes away and these
+# become ordinary files of this repository, edited here.
+ams.html -> index.html
+ams.js
+acord25-map.js
+certificates.js
+certificates-ui.js
+forms/acord25.pdf

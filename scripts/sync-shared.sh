@@ -31,24 +31,39 @@ cd "$HERE"
 drift=0
 missing=0
 
-while read -r f; do
-    [ -z "$f" ] && continue
-    if [ ! -f "$SRC/$f" ]; then
-        echo "  MISSING in Binder Book: $f"
+# One entry: a bare filename, or "source -> destination" when the file is
+# named differently here (ams.html is this site's index.html). Blank lines
+# and # comments are skipped.
+sync_one() {
+    src_name="${1%%->*}"; src_name="$(echo "$src_name" | xargs)"
+    dst_name="${1#*->}";  dst_name="$(echo "$dst_name" | xargs)"
+    [ "$1" = "$src_name" ] && dst_name="$src_name"
+
+    if [ ! -f "$SRC/$src_name" ]; then
+        echo "  MISSING in Binder Book: $src_name"
         missing=$((missing + 1))
-        continue
+        return
     fi
-    if cmp -s "$SRC/$f" "$f" 2>/dev/null; then
-        continue
+    if cmp -s "$SRC/$src_name" "$dst_name" 2>/dev/null; then
+        return
     fi
     if [ "$CHECK" = "1" ]; then
-        echo "  DRIFTED: $f"
+        echo "  DRIFTED: $dst_name"
     else
-        cp "$SRC/$f" "$f"
-        echo "  updated: $f"
+        mkdir -p "$(dirname "$dst_name")"
+        cp "$SRC/$src_name" "$dst_name"
+        echo "  updated: $dst_name"
     fi
     drift=$((drift + 1))
-done < shared-files.txt
+}
+
+for manifest in shared-files.txt app-files.txt; do
+    [ -f "$manifest" ] || continue
+    while read -r line; do
+        case "$line" in ''|\#*) continue ;; esac
+        sync_one "$line"
+    done < "$manifest"
+done
 
 if [ "$missing" -gt 0 ]; then
     echo "$missing shared file(s) no longer exist in the Binder Book — update shared-files.txt." >&2
