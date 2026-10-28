@@ -12,4 +12,5 @@ ams.js
 acord25-map.js
 certificates.js
 certificates-ui.js
+agency.js
 forms/acord25.pdf
