@@ -1,0 +1,8 @@
+{
+  "name": "uib-ams",
+  "private": true,
+  "description": "UIB Agency Management System — a static site plus the Client Portal function in api/.",
+  "dependencies": {
+    "pdf-lib": "1.17.1"
+  }
+}
