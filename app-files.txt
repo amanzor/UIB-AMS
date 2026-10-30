@@ -16,6 +16,7 @@ agency.js
 forms/acord25.pdf
 health.js
 additional-interests.js
+insured-login.js
 ams-home.js
 ams-books.js
 icons/uib-96.png
