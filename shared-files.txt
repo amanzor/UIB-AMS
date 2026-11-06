@@ -12,3 +12,5 @@ uib-motion.js
 uib-theme.css
 privacy-notice.html
 insured-portal.html
+uib-perms.js
+uib-drop.js
