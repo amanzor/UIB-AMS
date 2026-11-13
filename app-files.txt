@@ -23,3 +23,4 @@ ams-books.js
 icons/uib-96.png
 icons/uib-192.png
 max-ai.js
+uib-ai-theme.css
